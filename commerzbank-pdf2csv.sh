@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 
 #
@@ -6,6 +6,7 @@
 #
 
 
+#------------------------------------------------------------------------------#
 ### Eingabeüberprüfung
 if [ -z "${1}" ] ; then
 	echo "${0} Kreditkartenabrechnung_der_Commerzbank.pdf"
@@ -15,78 +16,94 @@ else
 fi
 
 
+#------------------------------------------------------------------------------#
 ### PDF -> XML
 NEUERNAME="$(echo "${PDFDATEI}" | sed 's/[( )][( )]*/_/g' | rev | sed 's/.*[.]//' | rev)"
 SEITEN="$(pdftohtml -c -i -xml -enc UTF-8 -noframes -nodrm -hidden "${PDFDATEI}" ${NEUERNAME}_alle_Seiten.xml | nl | awk '{print $1}' ; rm -f ${NEUERNAME}_alle_Seiten.xml)"
 for i in ${SEITEN}
 do
-	echo "pdftohtml -c -i -xml -enc UTF-8 -noframes -nodrm -hidden -f ${i} -l ${i} "${PDFDATEI}" ${NEUERNAME}_Seite_${i}.xml"
-	pdftohtml -c -i -xml -enc UTF-8 -noframes -nodrm -hidden -f ${i} -l ${i} "${PDFDATEI}" ${NEUERNAME}_Seite_${i}.xml
+	#echo "pdftohtml -c -i -xml -enc UTF-8 -noframes -nodrm -hidden -f ${i} -l ${i} "${PDFDATEI}" ${NEUERNAME}_Seite_${i}.xml"
+	pdftohtml -c -i -xml -enc UTF-8 -noframes -nodrm -hidden -f ${i} -l ${i} "${PDFDATEI}" ${NEUERNAME}_Seite_${i}.xml >/dev/null
 	XMLDATEIEN="${XMLDATEIEN} ${NEUERNAME}_Seite_${i}.xml"
 done
 
-#exit
 
-#XMLDATEIEN="Kreditkartenabrechnung-2014-04-09_Seite_1.xml Kreditkartenabrechnung-2014-04-09_Seite_2.xml Kreditkartenabrechnung-2014-04-09_Seite_3.xml"
-#XMLDATEIEN="Kreditkartenabrechnung-2014-04-09_Seite_1.xml"
-#XMLDATEIEN="Kreditkartenabrechnung_Seite_1.xml"
-#XMLDATEIEN="Kreditkartenabrechnung-2014-04-09_Seite_2.xml"
-#XMLDATEIEN="Kreditkartenabrechnung-2014-04-09_Seite_3.xml"
-
-
+#------------------------------------------------------------------------------#
 ### XML -> CSV
 for EINEXML in ${XMLDATEIEN}
 do
 	CSVNAME="$(echo "${EINEXML}" | rev | sed 's/.*[.]//' | rev)"
-	XMLDATEN="$(cat ${EINEXML} | sed '1,/[<]b[>]H = Guthaben[<][/]b[>]/d;1,/[<]b[>]/d' | grep -E '^[<]text ')"
-	TOP="$(echo "${XMLDATEN}" | tr -s '\r' '\n' | tr -s ' ' '\n' | fgrep 'top="' | awk -F'"' '{print $2}' | sort -n | uniq)"
+	#----------------------------------------------------------------------#
+	### Zeilen- und Spalten-Angaben extrahieren
+	### und Zeilen in die richtige Reihenfolge bringen
 
-### nur zum testen
-#echo "${XMLDATEN};" > ${CSVNAME}_bereinigte_Daten.xml
-#done
-#exit
-
-	SCHALTER_A="1"
-	SCHALTER_B="0"
-	for ZEILENNR in ${TOP}
+	NR_XMLDAT="$(cat ${EINEXML} | grep -E '^[<]text ' | while read ZEILE
 	do
-		if [ "${SCHALTER_A}" = "1" ] ; then
-			FETT="$(echo "${XMLDATEN}" | fgrep "top=\"${ZEILENNR}\"" | grep -F '><b>' | head -n1)"
-			if [ -n "${FETT}" ] ; then
-				if [ "${SCHALTER_B}" = "1" ] ; then
-					SCHALTER_A="0"
+		SPALTE_01="$(echo "${ZEILE}" | awk -F'>' '{print $1}')"
+		TOP="$(echo "${SPALTE_01}" | tr -s ' ' '\n' | grep -E '^top=' | tr -d '"' | awk -F'=' '{print $2}')"
+		LEFT="$(echo "${SPALTE_01}" | tr -s ' ' '\n' | grep -E '^left=' | tr -d '"' | awk -F'=' '{print $2}')"
+		WIDTH="$(echo "${SPALTE_01}" | tr -s ' ' '\n' | grep -E '^width=' | tr -d '"' | awk -F'=' '{print $2}')"
+		HEIGHT="$(echo "${SPALTE_01}" | tr -s ' ' '\n' | grep -E '^height=' | tr -d '"' | awk -F'=' '{print $2}')"
+		echo "${TOP} ${LEFT} ${WIDTH} ${HEIGHT} ${ZEILE}"
+	done | sort -n)"
+
+	#----------------------------------------------------------------------#
+	### Spalten in die richtige Reihenfolge bringen
+	#
+	# Weil in der PDF- und demzurfolge auch in der XML-Datei die Zeilen und
+	# Spalten frei positioniert stehen, ist es für den PDF- bzw. XML-Kode
+	# auch legitim, die Zeilen und Spalten dort in einer beliebigen
+	# Reihenfolge abzulegen... darum muss das hier sortiert werden.
+	#
+
+	ALLE_ZEILENNR="$(echo "${NR_XMLDAT}" | awk '{print $1}' | sort -n | uniq)"
+	ZEILEN_SORTIERT="$(for ZEILEN_NR in ${ALLE_ZEILENNR}
+	do
+		echo "${NR_XMLDAT}" | egrep "^${ZEILEN_NR} " | while read Z_NR ZEILE
+		do
+			echo "${ZEILE}"
+		done | sort -n | sed "s/.*/${ZEILEN_NR} &/"
+	done)"
+
+	#----------------------------------------------------------------------#
+	### hier muss an Hand der Werte LEFT und WIDTH ermittelt werden
+	### in welcher Spalte der Wert geschrieben werden muss
+
+	#----------------------------------------------------------------------#
+	### die Werbung (von oben und unten) entfernen
+
+	XMLDATEN="$(echo "${ZEILEN_SORTIERT}" | sed '1,/[<]b[>]H = Guthaben[<][/]b[>]/d; /[>][<]b[>]/,//d')"
+	ALLE_TOP="$(echo "${XMLDATEN}" | awk '{print $1}' | uniq)"
+
+	#----------------------------------------------------------------------#
+	### Daten aufarbeiten
+
+	for ZEILEN_NR in ${ALLE_TOP}
+	do
+		SPALTE="0"
+		echo "${XMLDATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
+		do
+			SPALTE="$(echo "${SPALTE}" | awk '{print $1 + 1}')"
+			SP_WERT="$(echo "${XML_ZEILE}" | sed 's/[<][/]text[>]$//; s/^[<]text .*[>]//;')"
+			if [ "${SPALTE}" = "1" ] ; then
+				ZAHLEN="$(echo -n "${SP_WERT};"|grep -E '[0-9][0-9]*[ \t][ \t]*[0-9][0-9]*')"
+				if [ -n "${ZAHLEN}" ] ; then
+					echo -n ";${SP_WERT};"
+				else
+					echo -n "${SP_WERT};"
 				fi
 			else
-				SCHALTER_B="1"
-				SPALTE="1"
-				for SPALTENNR in $(echo "${XMLDATEN}" | fgrep "top=\"${ZEILENNR}\"" | tr -s '\r' '\n' | tr -s ' ' '\n' | fgrep 'left="' | awk -F'"' '{print $2}' | sort -n)
-				do
-					SP_WERT="$(echo "${XMLDATEN}" | fgrep "top=\"${ZEILENNR}\"" | fgrep "left=\"${SPALTENNR}\"" | sed 's/[<][/]text[>]$//; s/^[<]text .*[>]//;')"
-					if [ "${SPALTE}" = "1" ] ; then
-						echo ""
-						ZAHLEN="$(echo -n "${SP_WERT};"|grep -E '[0-9][0-9]*[ \t][ \t]*[0-9][0-9]*')"
-						if [ -n "${ZAHLEN}" ] ; then
-							#echo -n ";${SP_WERT} '${ZEILENNR}';"
-							echo -n ";${SP_WERT};"
-						else
-							#echo -n "${SP_WERT} '${ZEILENNR}';"
-							echo -n "${SP_WERT};"
-						fi
-					else
-						echo -n "${SP_WERT};"
-					fi
-					SPALTE="$(echo "${SPALTE}" | awk '{print $1 + 1}')"
-				done
+				echo -n "${SP_WERT};"
 			fi
-		fi
-	done > ${CSVNAME}.csv
-done
-echo
+		done
+		echo ""
+	done
+done > ${NEUERNAME}.csv
 
-ls -lha ${XMLDATEIEN}
-#rm -f ${XMLDATEIEN}
-echo
-ls -lha ${NEUERNAME}_Seite_*.csv
+rm -f ${XMLDATEIEN}
+ls -lha ${NEUERNAME}.csv
+echo "
+libreoffice --calc ${NEUERNAME}.csv"
 
 #------------------------------------------------------------------------------#
 exit
