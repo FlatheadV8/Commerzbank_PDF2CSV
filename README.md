@@ -8,6 +8,8 @@ Die Informationen im Dokument werden alle völlig frei auf der Seite positionier
 Das ganze wird noch dadurch erschwert, dass die Angaben, die offensichtlich in der selben Zeile stehen, aber in der Höhe leicht versetzt sein können.
 Wenn zum Beispiel das Umsatzdatum (ganz links) 626 Bildpunkte vom oberen Rand entfernt steht, kann es sein, dass der Betrag (ganz rechts) 629 Bildpunkte vom oberen Rand entfernt steht. Somit kommt es schon einer Raterei nahe, wenn man hier feststellen will, was alles in ein und die selbe Zeile gehört.
 
+Ein weiteres Problem ist, das in der PDF-Datei die Zeilen und Spalten frei positioniert stehen, aus diesem Grund ist es auch erlaubt, dass die Zeilen und Spalten im Kode in einer beliebigen Reihenfolge vorliegen können und es auch tun.
+
 Weiter gibt es mit dieserm PDF-Format noch eine Koriose Eigenart, die mir einiges Kopfzerbrechen bereitet hat.
 
 Gewöhnlich habe ich PDF-Dateien immer auf die folgende Weise in Text-Dateien umgewandelt:
