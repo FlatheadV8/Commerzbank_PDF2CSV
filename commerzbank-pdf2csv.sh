@@ -66,22 +66,58 @@ do
 	done)"
 
 	#----------------------------------------------------------------------#
+	### die Werbung (von oben und unten) entfernen
+
+	XML_DATEN="$(echo "${ZEILEN_SORTIERT}" | sed '1,/[<]b[>]H = Guthaben[<][/]b[>]/d; /[>][<]b[>]/,//d')"
+	ZEILENNR_SORTIERT="$(echo "${XML_DATEN}" | awk '{print $1}' | uniq)"
+
+	#----------------------------------------------------------------------#
+	### die Hoehentolleranz muss hier ermittelt werden
+	###
+	### Die Einträge, die in einer Zeile stehen, weichen in der Höhe u.u.
+	### um ein paar Pixel ab.
+	### In der Praxis wurden Einträge beobachtet, die um 1/3 Schrifthöhe
+	### nach unten versetzt stehen.
+	###
+	### hier wird eine maximale Abweichung von 1/2 Schrifthöhe
+	### nach unten angenommen
+
+	ZEILENNR_TOLLERANZ="$(for ZEILEN_NR in ${ZEILENNR_SORTIERT}
+	do
+		### Hoehentolleranz berechnen
+		H_TOLLERANZ="$(echo "${XML_DATEN}" | egrep "^${ZEILEN_NR} " | grep -Ev '^$' | nl | awk '{z=$5;s+=z}END{printf "%.0f %.0f\n", $2,s/$1/2+$2}')"
+		echo "${H_TOLLERANZ}"
+	done)"
+	#echo "${ZEILENNR_TOLLERANZ}"
+
+	#----------------------------------------------------------------------#
+	### Die abweichenden Zeilennummern werden hier korrigiert
+
+	RICHTIGE_XMLDATEN="$(for ZEILEN_NR in ${ZEILENNR_SORTIERT}
+	do
+		echo "${XML_DATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
+		do
+			### Hoehentolleranz berechnen
+			RICHTIGE_NUMMER="$(echo "${ZEILENNR_TOLLERANZ}" | awk -v t="${ZEILEN_NR}" '{min=$1;max=$2;if (t >= min) {if (t < max) print min}}' | head -n1)"
+			echo "${RICHTIGE_NUMMER} ${SPALTEN_NR} ${SPLATEN_BREITE} ${ZEILEN_HOEHE} ${XML_ZEILE}"
+		done
+	done)"
+	ZEILENNR_SORTIERT="$(echo "${RICHTIGE_XMLDATEN}" | awk '{print $1}' | uniq)"
+
+	#----------------------------------------------------------------------#
 	### hier muss an Hand der Werte LEFT und WIDTH ermittelt werden
 	### in welcher Spalte der Wert geschrieben werden muss
 
-	#----------------------------------------------------------------------#
-	### die Werbung (von oben und unten) entfernen
-
-	XMLDATEN="$(echo "${ZEILEN_SORTIERT}" | sed '1,/[<]b[>]H = Guthaben[<][/]b[>]/d; /[>][<]b[>]/,//d')"
-	ALLE_TOP="$(echo "${XMLDATEN}" | awk '{print $1}' | uniq)"
 
 	#----------------------------------------------------------------------#
 	### Daten aufarbeiten
 
-	for ZEILEN_NR in ${ALLE_TOP}
+	#echo "${RICHTIGE_XMLDATEN}" | head
+
+	for ZEILEN_NR in ${ZEILENNR_SORTIERT}
 	do
 		SPALTE="0"
-		echo "${XMLDATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
+		echo "${RICHTIGE_XMLDATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
 		do
 			SPALTE="$(echo "${SPALTE}" | awk '{print $1 + 1}')"
 			SP_WERT="$(echo "${XML_ZEILE}" | sed 's/[<][/]text[>]$//; s/^[<]text .*[>]//;')"
