@@ -1,6 +1,18 @@
 Commerzbank_PDF2CSV
 ===================
 
+PDF-Datei in eine CSV-Datei umwandeln:
+
+~/bin/commerzbank-pdf2csv.sh Kreditkartenabrechnung-2014-04-09.pdf
+libreoffice --calc Kreditkartenabrechnung-2014-04-09.csv
+
+CSV-Datei in eine MoneyPlex-kompatible CSV-Datei umwandeln:
+
+~/bin/commerzbank-csv2moneyplex.sh Kreditkartenabrechnung-2014-04-09.csv
+ls Kreditkartenabrechnung-2014-04-09_moneyplex.csv
+
+--------------------------------------------------------------------------------
+
 Mit diesem Skript kann man Kreditkartenabrechnungen der Commerzbank in CSV-Dateien umwandeln.
 
 Die Umwandlung dieser PDF-Dateien ist besonders schwierig, weil die Kreditkartenabrechnung der Commerzbank wie Tabellen aussehen, leider vom internen Kode her aber keine sind.
@@ -71,12 +83,3 @@ Wenn sich eines dieser Elemente ändert, dann funktioniert das Skript nicht mehr
 Die größter Gefahr sehe ich in der Möglichkeit, dass im Bereich der Kontodaten etwas durch fettdruck hervorgehoben wird. In dem Fall würde ab dieser Hervorhebung die CSV-Datei enden und alle Kontodaten unterhalb der ersten Hervorhebung nicht in der CSV-Datei erscheinen.
 
 Sollte soetwas vorkommen, dann teilen Sie es mir bitte mit. In dem Fall würde ich lieber Werbung mit in die CSV-Datei übernehmen als Kontodaten auszulassen.
-
-
-Stand 2014-12-04 (Version 0.1.0)
---------------------------------
-Bis jetzt kann das Skript nur Angaben in ein und der selben Zeile angeben, bei denen der Abstand vom oberen Rand exakt die gleiche Anzahl von Bildpunkten beträgt.
-Somit werden zur Zeit noch die Daten aus dem oben genannten Beispiel (626 und 629 Bildpunkte von oben) in zwei untereinander stehenden, separaten Zeilen, in der CSV-Datei erscheinen.
-
-Auch kann das Skript noch keine Spalten eindeutig erkennen.
-Zur Zeit werden die Angaben in einer Zeile, in der richtigen Reihenfolge, hintereinander in der selben Zeile angegeben; müssen aber nicht in der richtigen Spalte stehen, da zur Zeit noch, nur belegte Spalten als Spalten erkannt werden.
