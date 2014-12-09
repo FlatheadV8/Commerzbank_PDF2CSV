@@ -30,6 +30,9 @@ done
 
 #------------------------------------------------------------------------------#
 ### XML -> CSV
+
+echo "Bahnkart;Umsatzdatum;Unternehmen;Ort;Ausgabe;Währung;Kurs;Buchungsdatum;Betrag in EUR;Guthaben" > ${NEUERNAME}.csv
+
 for EINEXML in ${XMLDATEIEN}
 do
 	CSVNAME="$(echo "${EINEXML}" | rev | sed 's/.*[.]//' | rev)"
@@ -105,48 +108,99 @@ do
 	ZEILENNR_SORTIERT="$(echo "${RICHTIGE_XMLDATEN}" | awk '{print $1}' | uniq)"
 
 	#----------------------------------------------------------------------#
-	### hier muss an Hand der Werte LEFT und WIDTH ermittelt werden
-	### in welcher Spalte der Wert geschrieben werden muss
+	### die Spaltentrennstellen können nicht automatisch ermittelt werden
 
+	### Tabellenkopf
+        #
+        #  86 + 41 = 127 - Spalte 1 - Umsatzdatum
+        # 162 + 68 = 230 - Spalte 2 - Unternehmen
+        # 353 + 16 = 369 - Spalte 3 - Ort
+        # 552 + 45 = 597 - Spalte 4 - Währung
+        # 649 + 24 = 673 - Spalte 5 - Kurs
+        # 722 + 33 = 755 - Spalte 6 - Buch.-datum
+        # 786 + 71 = 857 - Spalte 7 - Betrag in EUR
+
+	### eine der wenigen voll beschriebenen Zeilen
+        #
+        #  47 +  17 =  64  13 3  DB
+        #  90 +  30 = 120  13 3  18 03
+        # 142 + 111 = 253  13 3  Coop-3657 Vaduz St
+        # 353 +  34 = 387  13 3  Vaduz
+        # 543 +  30 = 573  13 3  11,20
+        # 587 +  25 = 612  13 3  CHF
+        # 671 +  37 = 708  13 3  1,2144
+        # 725 +  30 = 755  13 3  19 03
+        # 835 +  23 = 858  13 3  9,22
+        #
+        #   1     |     2      |      3             |    4    |     5    |      6      |      7      |      8      |       9     |   10
+        # --------+------------+--------------------+---------+----------+-------------+-------------+-------------+-------------+--------
+        # Bahnkart|Umsatzdatum |Unternehmen         | Ort     | Ausgabe  | Währung     |    Kurs     |Buchungsdatum|Betrag in EUR|Guthaben
+        # --------+------------+--------------------+---------+----------+-------------+-------------+-------------+-------------+--------
+        # 47-64   |   90-120   |   142-253          | 353-387 |  543-573 |   587-612   |   671-708   |   725-755   |    835-858  | 861-870
+        # --------+------------+--------------------+---------+----------+-------------+-------------+-------------+-------------+--------
+        #   DB    |    18 03   | Coop-3657 Vaduz St |  Vaduz  |   11,20  |     CHF     |    1,2144   |    19 03    |      9,22   |    H
+        #40      80           130                  290       500        580           640           715           765           860    880
+        #
+
+        ### die von Hand festgelegten Spaltentrennstellen lauten wie folgt
+        #
+        SPALTEN_TR="40 80 130 290 500 580 640 715 765 860 880"
 
 	#----------------------------------------------------------------------#
 	### Daten aufarbeiten
 
-	#echo "${RICHTIGE_XMLDATEN}" | head
-
 	for ZEILEN_NR in ${ZEILENNR_SORTIERT}
 	do
 		SPALTE="0"
-		echo "${RICHTIGE_XMLDATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
+		AKTUALLE_ZEILE="$(echo "${RICHTIGE_XMLDATEN}" | egrep "^${ZEILEN_NR} " | while read ZEILEN_NR SPALTEN_NR SPLATEN_BREITE ZEILEN_HOEHE XML_ZEILE
 		do
-			SPALTE="$(echo "${SPALTE}" | awk '{print $1 + 1}')"
-			SP_WERT="$(echo "${XML_ZEILE}" | sed 's/[<][/]text[>]$//; s/^[<]text .*[>]//;')"
-			if [ "${SPALTE}" = "1" ] ; then
-				ZAHLEN="$(echo -n "${SP_WERT};"|grep -E '[0-9][0-9]*[ \t][ \t]*[0-9][0-9]*')"
-				if [ -n "${ZAHLEN}" ] ; then
-					echo -n ";${SP_WERT};"
-				else
-					echo -n "${SP_WERT};"
-				fi
-			else
-				echo -n "${SP_WERT};"
+                	XML_DAT="$(echo "${XML_ZEILE}" | awk -F'>' '{print $2}' | awk -F'<' '{print $1}')"
+                	echo "${SPALTEN_NR} ${XML_DAT}"
+		done)"
+
+		#--------------------------------------------------------------#
+
+		SP_LINKS=""
+		for SP_RECHTS in ${SPALTEN_TR}
+		do
+			if [ -z "${SP_LINKS}" ] ; then
+				SP_LINKS="${SP_RECHTS}"
 			fi
+
+			echo "${AKTUALLE_ZEILE}" | grep -Ev '^$' | while read SP_PIXEL SP_WERT
+			do
+				if [ "${SP_PIXEL}" -gt "${SP_LINKS}" ] ; then
+					### rechts vom vorhergehenden Spaltentrenner
+					if [ "${SP_PIXEL}" -le "${SP_RECHTS}" ] ; then
+						### links vom aktuellen Spaltentrenner
+						echo -n "${SP_WERT}"
+					fi
+				fi
+			done
+
+			if [ "${SP_LINKS}" -ne "${SP_RECHTS}" ] ; then
+				### am Zeilenanfang braucht kein Semikolon
+				echo -n ";"
+			fi
+
+			### vorhergehenden Spaltentrenner sichern
+			SP_LINKS="${SP_RECHTS}"
 		done
 		echo ""
+		#--------------------------------------------------------------#
 	done
-done > ${NEUERNAME}.csv
+done | while read CSV_ZEILE
+do
+	### wenn es kein Umsatzdatum gibt, dann ist es Werbung
+	BUCHUNGSDATUM="$(echo "${CSV_ZEILE}" | awk -F';' '{print $8}')"
+	if [ -n "${BUCHUNGSDATUM}" ] ; then
+		echo "${CSV_ZEILE}"
+	fi
+done >> ${NEUERNAME}.csv
 
-rm -f ${XMLDATEIEN}
+#rm -f ${XMLDATEIEN}
 ls -lha ${NEUERNAME}.csv
 echo "
 libreoffice --calc ${NEUERNAME}.csv"
 
 #------------------------------------------------------------------------------#
-exit
-
-### MoneyPlex-Reihenfolge
-echo '"Saldo";"SdoWaehr";"AgBlz";"AgKto";"AgName1";"Storno";"OrigBtg";"Betrag";"BtgWaehr";"OCMTBetr";"OCMTWaehr";"Textschl";"VWZ1";"VWZ2";"VWZ3";"VWZ4";"VWZ5";"VWZ6";"VWZ7";"VWZ8";"VWZ9";"VWZ10";"VWZ11";"VWZ12";"VWZ13";"VWZ14";"BuchDatum";"WertDatum";"Primanota";"Kategorie";"Unterkat";"Kostenst"'
-
-### Beispiel
-# "Saldo";"SdoWaehr";"AgBlz";"AgKto";"AgName1"         ;"Storno";"OrigBtg";"Betrag";"BtgWaehr";"OCMTBetr";"OCMTWaehr";"Textschl";"VWZ1";"VWZ2"     ;"VWZ3";"VWZ4";"VWZ5";"VWZ6";"VWZ7";"VWZ8";"VWZ9";"VWZ10";"VWZ11";"VWZ12";"VWZ13";"VWZ14";"BuchDatum";"WertDatum";"Primanota";"Kategorie";"Unterkat";"Kostenst"
-# 63,39  ;"EUR"     ;""     ;""     ;"TESTAUFTRAGGEBER";0       ;-26,93   ;-26,93  ;"EUR"     ;-26,93    ;"EUR"      ;5         ;""    ;"TESTZWECK";""    ;""    ;""    ;""    ;""    ;""    ;""    ;""     ;""     ;""     ;""     ;""     ;17.3.2004  ;17.3.2004  ;"9044"     ;""         ;""        ;""
