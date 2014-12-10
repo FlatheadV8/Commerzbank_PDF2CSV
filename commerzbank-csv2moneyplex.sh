@@ -21,7 +21,7 @@ fi
 ### CSV für MoneyPlex umsortieren
 
 (echo '"Saldo";"SdoWaehr";"AgBlz";"AgKto";"AgName1";"Storno";"OrigBtg";"Betrag";"BtgWaehr";"OCMTBetr";"OCMTWaehr";"Textschl";"VWZ1";"VWZ2";"VWZ3";"VWZ4";"VWZ5";"VWZ6";"VWZ7";"VWZ8";"VWZ9";"VWZ10";"VWZ11";"VWZ12";"VWZ13";"VWZ14";"BuchDatum";"WertDatum";"Primanota";"Kategorie";"Unterkat";"Kostenst"';
-cat "${CSVDATEI}" | grep -Ev '^$' | awk -F';' '{ print ";;;;"$3";;"$9";"$9";;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }'
+cat "${CSVDATEI}" | grep -Ev '^Bahnkart;' | grep -Ev '^$' | awk -F';' '{ print ";;;;"$3";;"$9";"$9";;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }'
 ) > ${NEUERNAME}_moneyplex.csv
 
 ls -lh ${NEUERNAME}_moneyplex.csv
