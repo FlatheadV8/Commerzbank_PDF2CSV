@@ -20,9 +20,8 @@ fi
 #==============================================================================#
 ### CSV für MoneyPlex umsortieren
 
-(echo '"Saldo";"SdoWaehr";"AgBlz";"AgKto";"AgName1";"Storno";"OrigBtg";"Betrag";"BtgWaehr";"OCMTBetr";"OCMTWaehr";"Textschl";"VWZ1";"VWZ2";"VWZ3";"VWZ4";"VWZ5";"VWZ6";"VWZ7";"VWZ8";"VWZ9";"VWZ10";"VWZ11";"VWZ12";"VWZ13";"VWZ14";"BuchDatum";"WertDatum";"Primanota";"Kategorie";"Unterkat";"Kostenst"';
-cat "${CSVDATEI}" | grep -Ev '^Bahnkart;' | grep -Ev '^$' | awk -F';' '{ print ";;;;"$3";;"$9";"$9";;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }'
-) > ${NEUERNAME}_moneyplex.txt
+# echo '"Saldo";"SdoWaehr";"AgBlz";"AgKto";"AgName1";"Storno";"OrigBtg";"Betrag";"BtgWaehr";"OCMTBetr";"OCMTWaehr";"Textschl";"VWZ1";"VWZ2";"VWZ3";"VWZ4";"VWZ5";"VWZ6";"VWZ7";"VWZ8";"VWZ9";"VWZ10";"VWZ11";"VWZ12";"VWZ13";"VWZ14";"BuchDatum";"WertDatum";"Primanota";"Kategorie";"Unterkat";"Kostenst"';
+cat "${CSVDATEI}" | grep -Ev '^Bahnkart;' | grep -Ev '^$' | awk -F';' '{ print ";;;;"$3";;"$9";"$9";;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }' > ${NEUERNAME}_moneyplex.txt
 
 ls -lh ${NEUERNAME}_moneyplex.txt
 
@@ -32,7 +31,7 @@ ls -lh ${NEUERNAME}_moneyplex.txt
 #
 # 63,39;"EUR";"";"";"TESTAUFTRAGGEBER";0;-26,93;-26,93;"EUR";-26,93;"EUR";5;"";"TESTZWECK";"";"";"";"";"";"";"";"";"";"";"";"";17.3.2004;17.3.2004;"9044";"";"";""
 #
-#  Spaltennummer	| MoneyPlex	| CSV-Spalte	| CSV-Spaltenname	| Beispiel
+#  Spaltennummer  | MoneyPlex     | CSV-Spalte    | CSV-Spaltenname       | Beispiel
 # ----------------+---------------+---------------+-----------------------+----------
 #         01      | "Saldo"       |               |                       | 63,39
 #         02      | "SdoWaehr"    |               |                       | EUR
