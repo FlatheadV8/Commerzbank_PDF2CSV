@@ -1,10 +1,8 @@
 #!/bin/bash
 
-
 #
 # PDF -> XML -> CSV
 #
-
 
 #------------------------------------------------------------------------------#
 ### Eingabeüberprüfung
@@ -198,7 +196,7 @@ do
 	fi
 done >> ${NEUERNAME}.csv
 
-#rm -f ${XMLDATEIEN}
+rm -f ${XMLDATEIEN}
 ls -lha ${NEUERNAME}.csv
 echo "
 libreoffice --calc ${NEUERNAME}.csv"
