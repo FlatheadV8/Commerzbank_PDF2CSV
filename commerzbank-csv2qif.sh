@@ -8,14 +8,11 @@
 
 #------------------------------------------------------------------------------#
 ### Eingabeüberprüfung
+
 if [ -z "${1}" ] ; then
 	echo "${0} Kreditkartenabrechnung_der_Commerzbank.csv"
 	exit 1
-else
-	CSVDATEI="${1}"
-	NEUERNAME="$(echo "${1}" | sed 's/[( )][( )]*/_/g' | rev | sed 's/.*[.]//' | rev)"
 fi
-
 
 #==============================================================================#
 ### CSV für MoneyPlex umsortieren
