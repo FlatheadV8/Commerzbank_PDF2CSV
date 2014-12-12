@@ -2,7 +2,7 @@
 
 
 #
-# CSV -> MoneyPlex-CSV
+# CSV -> QIF (Quicken Interchange Format)
 #
 
 
