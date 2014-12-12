@@ -8,11 +8,11 @@
 
 #------------------------------------------------------------------------------#
 ### Eingabeüberprüfung
-if [ -z "${1}" ] ; then
-	echo "${0} Kreditkartenabrechnung_der_Commerzbank.csv"
-	exit 1
-fi
 
+if [ -z "${1}" ] ; then
+        echo "${0} Kreditkartenabrechnung_der_Commerzbank.csv"
+        exit 1
+fi
 
 #==============================================================================#
 ### CSV für MoneyPlex umsortieren
@@ -22,6 +22,11 @@ fi
 
 while [ "${#}" -ne "0" ]; do
         case "${1}" in
+                -j)
+                        JAHR="${2}"
+                        shift
+                        shift
+                        ;;
                 -k)
                         KATEGORIE_PARAMETER="${2}"
                         shift
@@ -45,6 +50,10 @@ done
 KATEGORIE_ALT="$(echo "${KATEGORIE_PARAMETER}" | awk -F'/' '{print $1}')"
 KATEGORIE_NEU="$(echo "${KATEGORIE_PARAMETER}" | awk -F'/' '{print $2}')"
 NEUERNAME="$(echo "${CSVDATEI}" | sed 's/[( )][( )]*/_/g' | rev | sed 's/.*[.]//' | rev)"
+
+#if [ -z "${JAHR}" ] ; then
+#        JAHR="$(date +'%Y')"
+#fi
 
 ### nur für Tests
 #echo "
@@ -72,12 +81,70 @@ NEUERNAME="$(echo "${CSVDATEI}" | sed 's/[( )][( )]*/_/g' | rev | sed 's/.*[.]//
 (echo 'Datum;Valuta;Zahlungspflichtiger/-empfänger;ZP/ZEKonto/IBAN;ZP/ZEBankleitzahl/BIC;Verwendungszweck;Kategorie;Betrag;Währung';
 cat "${CSVDATEI}" | grep -Ev '^Bahnkart;' | grep -Ev '^$' | while read ZEILE
 do
-	if [ -n "${KATEGORIE_PARAMETER}" ] ; then
-		echo "${ZEILE}" | sed "s/^${KATEGORIE_ALT};/${KATEGORIE_NEU};/" | tee -a /tmp/test.csv
-	else
-		echo "${ZEILE}"
-	fi
-done | awk -F';' '{ print $2";"$8";"$3,$4";;;"$5,$6,$7";"$1";"$9";EUR" }') > ${NEUERNAME}_moneyplex.txt
+	#----------------------------------------------------------------------#
+        (if [ -n "${JAHR}" ] ; then
+        	BUCHUNGSDATUM="$(echo "${ZEILE}" | awk -F';' -v jahr=${JAHR} '{ print $2,jahr }' | awk '{print $3"-"$2"-"$1}')"
+        else
+        	BUCHUNGSDATUM="$(echo "${ZEILE}" | awk -F';' '{ print $2 }')"
+        fi
+        if [ -n "${BUCHUNGSDATUM}" ] ; then
+               	echo "${BUCHUNGSDATUM};"
+        else
+                echo ";"
+        fi
+
+        if [ -n "${JAHR}" ] ; then
+        	VALUTA="$(echo "${ZEILE}" | awk -F';' -v jahr=${JAHR} '{ print $8,jahr }' | awk '{print $3"-"$2"-"$1}')"
+        else
+        	VALUTA="$(echo "${ZEILE}" | awk -F';' '{ print $8 }')"
+        fi
+        if [ -n "${VALUTA}" ] ; then
+               	echo "${VALUTA};"
+        else
+                echo ";"
+        fi
+
+        UNTERNEHMEN="$(echo "${ZEILE}" | awk -F';' '{ print $3 }')"
+        ORT="$(echo "${ZEILE}" | awk -F';' '{ print $4 }')"
+        if [ -n "${UNTERNEHMEN}${ORT}" ] ; then
+                echo "${UNTERNEHMEN} ${ORT};"
+        else
+                echo ";"
+        fi
+
+        echo ";;"
+
+        AUSGABE="$(echo "${ZEILE}" | awk -F';' '{ print $5 }')"
+        WAEHRUNG="$(echo "${ZEILE}" | awk -F';' '{ print $6 }')"
+        KURS="$(echo "${ZEILE}" | awk -F';' '{ print $7 }')"
+        if [ -n "${WAEHRUNG}" ] ; then
+                echo "${AUSGABE} ${WAEHRUNG} ${KURS};"
+        else
+                echo ";"
+        fi
+
+        KATEGORIE="$(echo "${ZEILE}" | awk -F';' '{ print $1 }')"
+        if [ -n "${KATEGORIE}" ] ; then
+        	if [ -n "${KATEGORIE_PARAMETER}" ] ; then
+                	echo "${KATEGORIE};" | sed "s/${KATEGORIE_ALT};/${KATEGORIE_NEU};/"
+        	else
+                	echo "${KATEGORIE};"
+        	fi
+        else
+                echo ";"
+        fi
+
+        BETRAG="$(echo "${ZEILE}" | awk -F';' '{ print $9 }')"
+        if [ -n "${BETRAG}" ] ; then
+                echo "${BETRAG};"
+        else
+                echo ";"
+        fi) | tr -d '\n'
+	#----------------------------------------------------------------------#
+        echo "EUR"
+done) > ${NEUERNAME}_moneyplex.txt
+
+ls -lh ${NEUERNAME}_moneyplex.txt
 
 # Datum ; Valuta ; Zahlungspflichtiger/-empfänger ; ZP/ZE Konto/IBAN ; ZP/ZE Bankleitzahl/BIC ; Verwendungszweck ; Kategorie ; Betrag ; Währung
 #
@@ -91,8 +158,6 @@ done | awk -F';' '{ print $2";"$8";"$3,$4";;;"$5,$6,$7";"$1";"$9";EUR" }') > ${N
 # 08 - Buchungsdatum	# Valuta
 # 09 - Betrag in EUR	# Betrag
 # 10 - Guthaben		# 
-
-ls -lh ${NEUERNAME}_moneyplex.txt
 
 exit
 #==============================================================================#
