@@ -1,19 +1,60 @@
 Commerzbank_PDF2CSV
 ===================
 
-PDF-Datei in eine CSV-Datei umwandeln:
+Hiermit kann man Kreditkartenabrechnungen der Commerzbank in CSV-Dateien umwandeln.
+Die CSV-Datei kann man dann in einer Tabellen-Calkulation aufbereiten,
+um zum Beispiel die Steuererklärung einfacher erledigen zu können.
 
-~/bin/commerzbank-pdf2csv.sh Kreditkartenabrechnung-2014-04-09.pdf
-libreoffice --calc Kreditkartenabrechnung-2014-04-09.csv
+Allerdings kann man hiermit auch eine QIF-Datei, für den Import in andere
+Kontoverwaltungs-Programme, erzeugen.
 
-CSV-Datei in eine MoneyPlex-kompatible CSV-Datei umwandeln:
-
-~/bin/commerzbank-csv2moneyplex.sh Kreditkartenabrechnung-2014-04-09.csv
-ls Kreditkartenabrechnung-2014-04-09_moneyplex.csv
+Und eine spezielle TXT-Datei, für den Import in MoneyPlex, kann auch generiert werden.
 
 --------------------------------------------------------------------------------
 
-Mit diesem Skript kann man Kreditkartenabrechnungen der Commerzbank in CSV-Dateien umwandeln.
+Schritt-für-Schritt-Abfolge, wie die CSV-Datei erstellt wird:
+-------------------------------------------------------------
+    
+    > wget https://github.com/FlatheadV8/Commerzbank_PDF2CSV/archive/v1.1.8.tar.gz
+    
+    > tar xzf v1.1.8.tar.gz
+    
+    > chmod 0755 Commerzbank_PDF2CSV-1.1.8/*.sh
+    
+    > find Commerzbank_PDF2CSV-1.1.8/
+    Commerzbank_PDF2CSV-1.1.8/
+    Commerzbank_PDF2CSV-1.1.8/commerzbank-pdf2csv.sh
+    Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh
+    Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh
+    Commerzbank_PDF2CSV-1.1.8/README.md
+    
+    > cp ../????/Commerzbank/Kreditkartenabrechnung-2014-04-09.pdf .
+    
+    > ls -lha Kreditkartenabrechnung-2014-04-09.pdf
+    -rw-r--r-- 1 ich ich 142K Dez 12 13:51 Kreditkartenabrechnung-2014-04-09.pdf
+    
+    > Commerzbank_PDF2CSV-1.1.8/commerzbank-pdf2csv.sh Kreditkartenabrechnung-2014-04-09.pdf
+    -rw-r--r-- 1 ich ich 5,5K Dez 12 23:07 Kreditkartenabrechnung-2014-04-09.csv
+    
+    libreoffice --calc Kreditkartenabrechnung-2014-04-09.csv
+
+
+
+wie aus der CSV-Datei die QIF-Datei gemacht wird:
+-------------------------------------------------
+    
+    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 7,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09.qif
+
+
+wie aus der CSV-Datei die TXT-Datei gemacht wird:
+-------------------------------------------------
+    
+    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 6,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09_moneyplex.txt
+
+
+--------------------------------------------------------------------------------
 
 Die Umwandlung dieser PDF-Dateien ist besonders schwierig, weil die Kreditkartenabrechnung der Commerzbank wie Tabellen aussehen, leider vom internen Kode her aber keine sind.
 Die Informationen im Dokument werden alle völlig frei auf der Seite positioniert, wie zum Beispiel Statistische Werte in einem Diagramm.
