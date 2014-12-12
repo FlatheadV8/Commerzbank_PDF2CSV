@@ -65,7 +65,7 @@ NEUERNAME="$(echo "${CSVDATEI}" | sed 's/[( )][( )]*/_/g' | rev | sed 's/.*[.]//
 #	else
 #		echo "${ZEILE}"
 #	fi
-#done | awk -F';' '{ print ";;;;"$3";;"$9";"$9";EUR;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }') > ${NEUERNAME}_moneyplex.csv
+#done | awk -F';' '{ print ";;;;"$3";;"$9";"$9";EUR;"$5";"$6";"$7";"$4";;;;;;;;;;;;;;"$8";"$2";;"$1";;"$10";" }') > ${NEUERNAME}_moneyplex.txt
 
 
 ### VR-NetWorld - Export-Format (http://wiki.matrica.com/index.php/Daten%C3%BCbernahme)
@@ -77,7 +77,7 @@ do
 	else
 		echo "${ZEILE}"
 	fi
-done | awk -F';' '{ print $2";"$8";"$3,$4";;;"$5,$6,$7";"$1";"$9";EUR" }') > ${NEUERNAME}_moneyplex.csv
+done | awk -F';' '{ print $2";"$8";"$3,$4";;;"$5,$6,$7";"$1";"$9";EUR" }') > ${NEUERNAME}_moneyplex.txt
 
 # Datum ; Valuta ; Zahlungspflichtiger/-empfänger ; ZP/ZE Konto/IBAN ; ZP/ZE Bankleitzahl/BIC ; Verwendungszweck ; Kategorie ; Betrag ; Währung
 #
@@ -92,7 +92,7 @@ done | awk -F';' '{ print $2";"$8";"$3,$4";;;"$5,$6,$7";"$1";"$9";EUR" }') > ${N
 # 09 - Betrag in EUR	# Betrag
 # 10 - Guthaben		# 
 
-ls -lh ${NEUERNAME}_moneyplex.csv
+ls -lh ${NEUERNAME}_moneyplex.txt
 
 exit
 #==============================================================================#
