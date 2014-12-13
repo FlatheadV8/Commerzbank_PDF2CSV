@@ -6,35 +6,38 @@ Die CSV-Datei kann man dann in einer Tabellen-Calkulation aufbereiten,
 um zum Beispiel die Steuererklärung einfacher erledigen zu können.
 
 Allerdings kann man hiermit auch eine QIF-Datei, für den Import in andere
-Kontoverwaltungs-Programme, erzeugen.
+Kontoverwaltungs-Programme (z.B. GnuCache), erzeugen.
 
-Und eine spezielle TXT-Datei, für den Import in MoneyPlex, kann auch generiert werden.
+Es kann auch eine spezielle CSV-Datei für den Import in MoneyPlex (Importfilter: "CSV-Import Geldtipps Homebanking") generiert werden.
 
 --------------------------------------------------------------------------------
 
 Schritt-für-Schritt-Abfolge, wie die CSV-Datei erstellt wird:
 -------------------------------------------------------------
     
-    > wget https://github.com/FlatheadV8/Commerzbank_PDF2CSV/archive/v1.1.8.tar.gz
+    > wget https://github.com/FlatheadV8/Commerzbank_PDF2CSV/archive/v1.2.2.tar.gz
     
-    > tar xzf v1.1.8.tar.gz
+    > tar xzf v1.2.2.tar.gz
     
-    > chmod 0755 Commerzbank_PDF2CSV-1.1.8/*.sh
+    > chmod 0755 Commerzbank_PDF2CSV-1.2.2/*.sh
     
-    > find Commerzbank_PDF2CSV-1.1.8/
-    Commerzbank_PDF2CSV-1.1.8/
-    Commerzbank_PDF2CSV-1.1.8/commerzbank-pdf2csv.sh
-    Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh
-    Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh
-    Commerzbank_PDF2CSV-1.1.8/README.md
+    > find Commerzbank_PDF2CSV-1.2.2/
+    Commerzbank_PDF2CSV-1.2.2/
+    Commerzbank_PDF2CSV-1.2.2/commerzbank-pdf2csv.sh
+    Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2qif.sh
+    Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2moneyplex.sh
+    Commerzbank_PDF2CSV-1.2.2/README.md
     
     > cp ../????/Commerzbank/Kreditkartenabrechnung-2014-04-09.pdf .
     
     > ls -lha Kreditkartenabrechnung-2014-04-09.pdf
     -rw-r--r-- 1 ich ich 142K Dez 12 13:51 Kreditkartenabrechnung-2014-04-09.pdf
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-pdf2csv.sh Kreditkartenabrechnung-2014-04-09.pdf
-    -rw-r--r-- 1 ich ich 5,5K Dez 12 23:07 Kreditkartenabrechnung-2014-04-09.csv
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-pdf2csv.sh Kreditkartenabrechnung-2014-04-09.pdf
+    
+    das kann jetzt ein paar Minuten dauern ...
+    
+    -rw-r--r-- 1 ich ich 5,5K Dez 13 23:31 Kreditkartenabrechnung-2014-04-09.csv
     
     libreoffice --calc Kreditkartenabrechnung-2014-04-09.csv
 
@@ -42,45 +45,45 @@ Schritt-für-Schritt-Abfolge, wie die CSV-Datei erstellt wird:
 wie aus der CSV-Datei die QIF-Datei gemacht wird:
 -------------------------------------------------
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 7,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09.qif
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2qif.sh Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 6,7K Dez 13 23:32 Kreditkartenabrechnung-2014-04-09.qif
 
 oder (auf der Originalabrechnung stehen immer nur Tag+Monat aber kein Jahr, so wird das geändert)
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh -j 2014 Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 7,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09.qif
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2qif.sh -j 2014 Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 6,7K Dez 13 23:33 Kreditkartenabrechnung-2014-04-09.qif
 
 oder (die Zusatz "DB" für die Bahnkart-Abrechnungen können auch beliebig umbenannt werden, z.B. in "Fahrtkosten")
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 7,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09.qif
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2qif.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 7,4K Dez 13 23:33 Kreditkartenabrechnung-2014-04-09.qif
 
 oder (die Kombination beider Parameter ist auch möglich)
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2qif.sh -j 2014 -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 7,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09.qif
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2qif.sh -j 2014 -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 7,4K Dez 13 23:34 Kreditkartenabrechnung-2014-04-09.qif
 
 
 wie aus der CSV-Datei die TXT-Datei gemacht wird:
 -------------------------------------------------
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 6,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09_moneyplex.txt
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2moneyplex.sh Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 5,7K Dez 13 23:34 Kreditkartenabrechnung-2014-04-09_moneyplex.csv
 
 oder (auf der Originalabrechnung stehen immer nur Tag+Monat aber kein Jahr, so wird das geändert)
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh -j 2014 Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 6,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09_moneyplex.txt
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2moneyplex.sh -j 2014 Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 6,7K Dez 13 23:35 Kreditkartenabrechnung-2014-04-09_moneyplex.csv
 
 oder (die Zusatz "DB" für die Bahnkart-Abrechnungen können auch beliebig umbenannt werden, z.B. in "Fahrtkosten")
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 6,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09_moneyplex.txt
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2moneyplex.sh -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 6,4K Dez 13 23:35 Kreditkartenabrechnung-2014-04-09_moneyplex.csv
 
 oder (die Kombination beider Parameter ist auch möglich)
     
-    > Commerzbank_PDF2CSV-1.1.8/commerzbank-csv2moneyplex.sh -j 2014 -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
-    -rw-r--r-- 1 ich ich 6,4K Dez 12 23:08 Kreditkartenabrechnung-2014-04-09_moneyplex.txt
+    > Commerzbank_PDF2CSV-1.2.2/commerzbank-csv2moneyplex.sh -j 2014 -k DB/Fahrtkosten Kreditkartenabrechnung-2014-04-09.csv
+    -rw-r--r-- 1 ich ich 7,4K Dez 13 23:36 Kreditkartenabrechnung-2014-04-09_moneyplex.csv
 
 
 --------------------------------------------------------------------------------
