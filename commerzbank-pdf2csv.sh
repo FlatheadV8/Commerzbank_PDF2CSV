@@ -13,6 +13,9 @@ else
 	PDFDATEI="${1}"
 fi
 
+echo "
+das kann jetzt ein paar Minuten dauern ...
+"
 
 #------------------------------------------------------------------------------#
 ### PDF -> XML
