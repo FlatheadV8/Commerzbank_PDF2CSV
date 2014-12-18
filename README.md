@@ -12,6 +12,10 @@ Es kann auch eine spezielle CSV-Datei für den Import in MoneyPlex (Importfilter
 
 --------------------------------------------------------------------------------
 
+Um diese Skripte nutzen zu können, reicht es nicht das Paket "ghostscript" zu installieren, hierfür müssen auch die Pakete "pstotext" und "poppler-utils" noch installiert werden!
+
+--------------------------------------------------------------------------------
+
 Schritt-für-Schritt-Abfolge, wie die CSV-Datei erstellt wird:
 -------------------------------------------------------------
     
